@@ -34,7 +34,7 @@ void PipelineSimulator::runSimulation() {
             active_inst.push_back(cycle);
         }
         simulateCycle();
-        //cycle++;
+        cycle++;
         printState();
     }
 }
@@ -48,115 +48,114 @@ void PipelineSimulator::printState() const {
 }
 
 void PipelineSimulator::removeCompletedInst() {
-	for (int i : completed_inst) {
-		active_inst.remove(i);
-	}
-	completed_inst.clear();
+    for (int i : completed_inst) {
+        active_inst.remove(i);
+    }
+    completed_inst.clear();
 }
 
 void PipelineSimulator::simulateCycle() {
     // Handle all operations except WRITE
-	for (auto i : active_inst) {
-		handleInstructionOp(i);
-	}
-	// Handle Write operation after all operations done
-	for (auto i : active_inst) {
-		handleWriteOperations(i);
-	}
+    for (auto i : active_inst) {
+        handleInstructionOp(i);
+    }
+    // Handle Write operation after all operations done
+    for (auto i : active_inst) {
+        handleWriteOperations(i);
+    }
 
-	removeCompletedInst();
-	cycle++;
+    removeCompletedInst();
 }
 
 void PipelineSimulator::handleInstructionOp(int inst_idx) {
-	if (instructions[inst_idx].stage == Stage::DONE) {
-		completed_inst.push_back(inst_idx); // add inst to be removed
-		return;
-	}
-	switch(instructions[inst_idx].type) {
-		case InstructionType::ADD:
-			switch (instructions[inst_idx].stage) {
-				case Stage::S1:
-					// does nothing
-					instructions[inst_idx].stage = Stage::S2;
-					break;
-				case Stage::S2:
-					handleReadOperation(inst_idx);
-					instructions[inst_idx].stage = Stage::S3;
-					break;
-				case Stage::S3:
-					int val1 = instructions[inst_idx].reg1;
-					int val2 = instructions[inst_idx].reg2;
-					int dest = instructions[inst_idx].reg3;
-					int result = val1 + val2;
-					registers_to_write.push_back( {dest, result} );
-					instructions[inst_idx].stage = Stage::DONE;
-					break;
-			}
-			break;
-		case InstructionType::MUL:
-			switch (instructions[inst_idx].stage) {
-				case Stage::S1:
-					// does nothing
-					instructions[inst_idx].stage = Stage::S2;
-					break;
-				case Stage::S2:
-					handleReadOperation(inst_idx);
-					instructions[inst_idx].stage = Stage::S3;
-					break;
-				case Stage::S3:
-					// does nothing
-					instructions[inst_idx].stage = Stage::S4;
-					break;
-				case Stage::S4:
-					int val1 = instructions[inst_idx].reg1;
-					int val2 = instructions[inst_idx].reg2;
-					int dest = instructions[inst_idx].reg3;
-					int result = val1 * val2;
-					registers_to_write.push_back( {dest, result} );
-					instructions[inst_idx].stage = Stage::DONE;
-					break;
-			}
-			break;
-		case InstructionType::ST:
-			switch (instructions[inst_idx].stage) {
-				case Stage::S1:
-					handleReadOperation(inst_idx);
-					instructions[inst_idx].stage = Stage::S2;
-					break;
-				case Stage::S2:
-					handleOutputOperation(inst_idx);
-					instructions[inst_idx].stage = Stage::DONE;
-					break;
-			}
-			break;
-		default:
-			// Should never end up here, may add exception handling if desired
-			break;
-	}
+    if (instructions[inst_idx].stage == Stage::DONE) {
+        completed_inst.push_back(inst_idx); // add inst to be removed
+        return;
+    }
+    switch(instructions[inst_idx].type) {
+        case InstructionType::ADD:
+            switch (instructions[inst_idx].stage) {
+                case Stage::S1:
+                    // does nothing
+                    instructions[inst_idx].stage = Stage::S2;
+                    break;
+                case Stage::S2:
+                    handleReadOperation(inst_idx);
+                    instructions[inst_idx].stage = Stage::S3;
+                    break;
+                case Stage::S3:
+                    int val1 = instructions[inst_idx].reg1;
+                    int val2 = instructions[inst_idx].reg2;
+                    int dest = instructions[inst_idx].reg3;
+                    int result = val1 + val2;
+                    registers_to_write.push_back( {dest, result} );
+                    instructions[inst_idx].stage = Stage::DONE;
+                    break;
+            }
+            break;
+        case InstructionType::MUL:
+            switch (instructions[inst_idx].stage) {
+                case Stage::S1:
+                    // does nothing
+                    instructions[inst_idx].stage = Stage::S2;
+                    break;
+                case Stage::S2:
+                    handleReadOperation(inst_idx);
+                    instructions[inst_idx].stage = Stage::S3;
+                    break;
+                case Stage::S3:
+                    // does nothing
+                    instructions[inst_idx].stage = Stage::S4;
+                    break;
+                case Stage::S4:
+                    int val1 = instructions[inst_idx].reg1;
+                    int val2 = instructions[inst_idx].reg2;
+                    int dest = instructions[inst_idx].reg3;
+                    int result = val1 * val2;
+                    registers_to_write.push_back( {dest, result} );
+                    instructions[inst_idx].stage = Stage::DONE;
+                    break;
+            }
+            break;
+        case InstructionType::ST:
+            switch (instructions[inst_idx].stage) {
+                case Stage::S1:
+                    handleReadOperation(inst_idx);
+                    instructions[inst_idx].stage = Stage::S2;
+                    break;
+                case Stage::S2:
+                    handleOutputOperation(inst_idx);
+                    instructions[inst_idx].stage = Stage::DONE;
+                    break;
+            }
+            break;
+        default:
+            // Should never end up here, may add exception handling if desired
+            break;
+    }
 }
 
 void PipelineSimulator::handleReadOperation(int inst_idx) {
-	if (instructions[inst_idx].type == InstructionType::ADD ||
-			instructions[inst_idx].type == InstructionType::MUL) {
-			instructions[inst_idx].reg1 = registers[instructions[inst_idx].reg1];
-			instructions[inst_idx].reg2 = registers[instructions[inst_idx].reg2];
-	} else { // instructions[inst_idx].type == InstructionType::ST
-			instructions[inst_idx].reg1 = registers[instructions[inst_idx].reg1];
-	}
+    if (instructions[inst_idx].type == InstructionType::ADD ||
+        instructions[inst_idx].type == InstructionType::MUL) {
+        instructions[inst_idx].reg1 = registers[instructions[inst_idx].reg1];
+        instructions[inst_idx].reg2 = registers[instructions[inst_idx].reg2];
+    } else { // instructions[inst_idx].type == InstructionType::ST
+        instructions[inst_idx].reg1 = registers[instructions[inst_idx].reg1];
+    }
 }
 
 void PipelineSimulator::handleOutputOperation(int inst_idx) {
-	if (instructions[inst_idx].type == InstructionType::ST &&
-			instructions[inst_idx].stage == Stage::S2) {
-		std::cout << instructions[inst_idx].reg1 << " ";
-		instructions[inst_idx].stage == Stage::DONE;
-	}
+    if (instructions[inst_idx].type == InstructionType::ST &&
+        instructions[inst_idx].stage == Stage::S2) {
+        std::cout << instructions[inst_idx].reg1 << " ";
+        instructions[inst_idx].stage == Stage::DONE;
+    }
 }
 
 void PipelineSimulator::handleWriteOperations(int inst_idx) {
-	for (auto itr = registers_to_write.begin(); itr != registers_to_write.end(); ++itr) {
-		registers[itr->first] = itr->second;
-	}
-	registers_to_write.clear(); // clear after write is done
+    for (auto itr = registers_to_write.begin(); itr != registers_to_write.end(); ++itr) {
+        registers[itr->first] = itr->second;
+    }
+    registers_to_write.clear(); // clear after write is done
 }
