@@ -36,5 +36,6 @@ int main() {
     runTest("ST Read takes priority over ADD Write", "ADD123 ST1 ST3", -99, 2, 9, 50);  // ST3 prints 9, not -97
     runTest("Coincident Write, last Write wins", "MUL123 ADD243 ST3 ST3", -99, 2, 9, 50); // ADD comes after MUL so ADD Write wins, reg3 is 52 and outputs 9
     runTest("Consecutive Write", "ADD123 ADD243 ADD143", -99, 2, 9, 50); // value is written correctly each time
+    runTest("README sample", "ADD123 MUL341 ST1", -99, 1, 4, 40);
     return 0;
 }
